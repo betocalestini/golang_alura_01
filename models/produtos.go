@@ -69,7 +69,7 @@ func CriarNovoProduto(name, description string, precoConvertido float64, quantid
 func DeletaProduto(id string) {
 	db := db.Conexao()
 	// Modify some data in table.
-	sqlStatement, err := db.Prepare("DELETE FROM produtos WHERE id = ?")
+	sqlStatement, err := db.Prepare("DELETE FROM produtos WHERE id = ?;")
 	services.TrataErro(err)
 
 	rows, err := sqlStatement.Exec(id)
@@ -81,4 +81,33 @@ func DeletaProduto(id string) {
 	fmt.Printf("Deleted %d row(s) of data.\n", rowCount)
 	fmt.Println("Done.")
 	defer db.Close()
+}
+
+func EditaProduto(id string) Produto {
+
+	db := db.Conexao()
+	// Read some data from the table.
+	row, err := db.Query("SELECT * from produtos WHERE id=?;", id)
+	services.TrataErro(err)
+
+	produtoParaAtualizar := Produto{}
+	fmt.Println("Reading data:")
+	for row.Next() {
+		var (
+			id, amount        int
+			name, description string
+			price             float64
+		)
+		err := row.Scan(&id, &name, &description, &price, &amount)
+		services.TrataErro(err)
+
+		fmt.Printf("Data row = (%d, %s, %s, %f, %d)\n", id, name, description, price, amount)
+		produtoParaAtualizar.Nome = name
+		produtoParaAtualizar.Descricao = description
+		produtoParaAtualizar.Preco = price
+		produtoParaAtualizar.Quantidade = amount
+	}
+	fmt.Println("Done.")
+	defer db.Close()
+	return produtoParaAtualizar
 }
